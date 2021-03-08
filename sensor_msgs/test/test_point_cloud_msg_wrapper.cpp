@@ -274,15 +274,17 @@ LIDAR_UTILS__DEFINE_FIELD_GENERATOR_FOR_MEMBER(bb);
 
 /// @test Check check_that_generated_fields_cover_all_point_members
 TEST(PointCloudMsgWrapperTest, point_with_2_custom_fields) {
-  sensor_msgs::msg::PointCloud2 msg;
-
+  sensor_msgs::msg::PointCloud2 msg1;
   using Generators = std::tuple<
     field_aa_generator,
     field_bb_generator>;
   using CustomCloudModifier = PointCloud2Modifier<PointCustomAB, Generators>;
-  EXPECT_NO_THROW(CustomCloudModifier(msg, "some_frame_id"));
+  EXPECT_NO_THROW(CustomCloudModifier(msg1, "some_frame_id"));
 
-  CustomCloudModifier cloud_wrapper(msg, "some_frame_id");
+  sensor_msgs::msg::PointCloud2 msg2;
+  CustomCloudModifier cloud_wrapper(msg2, "some_frame_id");
+  EXPECT_EQ(msg2.fields[0].name, "aa");
+  EXPECT_EQ(msg2.fields[1].name, "bb");
 }
 
 /// @test Check that a macro we use for readability is not leaking outside of the header file.
