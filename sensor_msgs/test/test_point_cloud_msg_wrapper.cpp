@@ -260,6 +260,31 @@ TEST(PointCloudMsgWrapperTest, point_with_custom_field) {
   ASSERT_EQ(initialized_wrapper.size(), 2U);
 }
 
+struct PointCustomAB
+{
+  uint16_t aa;
+  uint16_t bb;
+  friend bool operator==(const PointCustomAB & p1, const PointCustomAB & p2) noexcept
+  {
+    return p1.aa == p2.aa && p1.bb == p2.bb;
+  }
+};
+LIDAR_UTILS__DEFINE_FIELD_GENERATOR_FOR_MEMBER(aa);
+LIDAR_UTILS__DEFINE_FIELD_GENERATOR_FOR_MEMBER(bb);
+
+/// @test Check check_that_generated_fields_cover_all_point_members
+TEST(PointCloudMsgWrapperTest, point_with_2_custom_fields) {
+  sensor_msgs::msg::PointCloud2 msg;
+
+  using Generators = std::tuple<
+    field_aa_generator,
+    field_bb_generator>;
+  using CustomCloudModifier = PointCloud2Modifier<PointWithCustomField, Generators>;
+  EXPECT_NO_THROW(CustomCloudModifier(msg, "some_frame_id"));
+
+  CustomCloudModifier cloud_wrapper(msg, "some_frame_id");
+}
+
 /// @test Check that a macro we use for readability is not leaking outside of the header file.
 TEST(PointCloudMsgWrapperTest, compilation_macro_is_unset) {
   #ifdef COMPILE_IF_MUTABLE
