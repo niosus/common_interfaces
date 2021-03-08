@@ -279,7 +279,7 @@ TEST(PointCloudMsgWrapperTest, point_with_2_custom_fields) {
   using Generators = std::tuple<
     field_aa_generator,
     field_bb_generator>;
-  using CustomCloudModifier = PointCloud2Modifier<PointWithCustomField, Generators>;
+  using CustomCloudModifier = PointCloud2Modifier<PointCustomAB, Generators>;
   EXPECT_NO_THROW(CustomCloudModifier(msg, "some_frame_id"));
 
   CustomCloudModifier cloud_wrapper(msg, "some_frame_id");
