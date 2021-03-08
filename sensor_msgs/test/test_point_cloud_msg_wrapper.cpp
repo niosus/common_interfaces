@@ -115,7 +115,7 @@ using AllPointTypes = ::testing::Types<
   CustomAlignedPoint,
   GeometryPointXYZ>;
 // cppcheck-suppress syntaxError - trailing comma is the only way to remove the compiler warning.
-TYPED_TEST_SUITE(PointCloudMsgWrapperTest, AllPointTypes, );
+TYPED_TEST_CASE(PointCloudMsgWrapperTest, AllPointTypes, );
 
 using sensor_msgs::PointCloud2View;
 using sensor_msgs::PointCloud2Modifier;
