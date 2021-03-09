@@ -29,6 +29,7 @@
 #include <utility>
 #include <limits>
 #include <memory>
+#include <algorithm>
 
 ///
 /// @brief      A help macro to simplify conditional compilation based on mutability.
@@ -234,6 +235,15 @@ public:
     m_cloud_ref.row_step += sizeof(PointT);
     m_cloud_ref.width++;
     this->operator[](m_cloud_ref.width - 1U) = point_copy;
+  }
+
+  /// @brief      Push a new point into the message.
+  COMPILE_IF_MUTABLE(CloudMsgT, void) push_back_2(const PointT & point)
+  {
+    m_cloud_ref.row_step += sizeof(PointT);
+    m_cloud_ref.width++;
+    const auto iter_bytes = reinterpret_cast<const unsigned char *>(&point);
+    m_cloud_ref.data.insert(m_cloud_ref.data.end(), iter_bytes, iter_bytes + sizeof(PointT));
   }
 
   /// @brief      Push a new point into the message.

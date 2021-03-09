@@ -26,6 +26,8 @@
 #include <tuple>
 #include <cmath>
 #include <limits>
+#include <chrono>
+#include <vector>
 
 namespace
 {
@@ -285,6 +287,80 @@ TEST(PointCloudMsgWrapperTest, point_with_2_custom_fields) {
   CustomCloudModifier cloud_wrapper(msg2, "some_frame_id");
   EXPECT_EQ(msg2.fields[0].name, "aa");
   EXPECT_EQ(msg2.fields[1].name, "bb");
+}
+
+
+struct PointXYZInt
+{
+  float x;
+  float y;
+  float z;
+  float intensity;
+  PointXYZInt(float x, float y, float z, float intensity)
+  : x(x), y(y), z(z), intensity(intensity) {}
+  PointXYZInt() = default;
+  friend bool operator==(const PointXYZInt & p1, const PointXYZInt & p2) noexcept
+  {
+    return ::nearly_equal(p1.x, p2.x) &&
+           ::nearly_equal(p1.y, p2.y) &&
+           ::nearly_equal(p1.z, p2.z) &&
+           ::nearly_equal(p1.intensity, p2.intensity);
+  }
+};
+
+PointXYZInt PointGenerator()
+{
+  const float multiplier = 0.005;
+  static size_t i = 0;
+  i++;
+  return {i * multiplier,
+      i * multiplier,
+      i * multiplier,
+      i * multiplier};
+}
+
+/// @test Check check_that_generated_fields_cover_all_point_members
+TEST(PointCloudMsgWrapperTest, push_back_time_test) {
+  using Clock = std::chrono::high_resolution_clock;
+  using TimePoint = Clock::time_point;
+
+  auto millis_dif = [](const TimePoint & t1, const TimePoint & t2) {
+      return std::chrono::duration<float, std::milli>(t2 - t1).count();
+    };
+
+  sensor_msgs::msg::PointCloud2 msg_old;
+  sensor_msgs::msg::PointCloud2 msg_new;
+  using Generators = std::tuple<
+    sensor_msgs::field_x_generator,
+    sensor_msgs::field_y_generator,
+    sensor_msgs::field_z_generator,
+    sensor_msgs::field_intensity_generator>;
+  using CloudXYZModifier = PointCloud2Modifier<PointXYZInt, Generators>;
+  CloudXYZModifier cloud_wrapper_old(msg_old, "some_frame_id");
+  CloudXYZModifier cloud_wrapper_new(msg_new, "some_frame_id");
+  const size_t count_points = 100000000;
+  std::vector<PointXYZInt> points_source(count_points);
+  std::generate(points_source.begin(), points_source.end(), PointGenerator);
+
+  {
+    TimePoint time_01 = Clock::now();
+    cloud_wrapper_old.reserve(count_points);
+    for (const auto & point : points_source) {
+      cloud_wrapper_old.push_back(point);
+    }
+    TimePoint time_02 = Clock::now();
+    std::cout << "push_back took: " << millis_dif(time_01, time_02) << " ms." << std::endl;
+  }
+
+  {
+    TimePoint time_01 = Clock::now();
+    cloud_wrapper_new.reserve(count_points);
+    for (const auto & point : points_source) {
+      cloud_wrapper_new.push_back_2(point);
+    }
+    TimePoint time_02 = Clock::now();
+    std::cout << "push_back_2 took: " << millis_dif(time_01, time_02) << " ms." << std::endl;
+  }
 }
 
 /// @test Check that a macro we use for readability is not leaking outside of the header file.
