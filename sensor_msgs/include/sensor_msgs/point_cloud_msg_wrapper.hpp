@@ -275,7 +275,9 @@ public:
   const PointT & at(const std::size_t index) const
   {
     if (index >= size()) {
-      throw std::runtime_error("Cannot get point, index too large.");
+      throw std::out_of_range(
+              "Index is out of bounds, " +
+              std::to_string(index) + " >= " + std::to_string(size()));
     }
     return reinterpret_cast<const PointT &>(
       *(m_cloud_ref.data.data() + index * sizeof(PointT)));
@@ -285,7 +287,9 @@ public:
   COMPILE_IF_MUTABLE(CloudMsgT, PointT &) at(const std::size_t index)
   {
     if (index >= size()) {
-      throw std::runtime_error("Cannot get point, index too large.");
+      throw std::out_of_range(
+          "Index is out of bounds, " +
+              std::to_string(index) + " >= " + std::to_string(size()));
     }
     return reinterpret_cast<PointT &>(*(m_cloud_ref.data.data() + index * sizeof(PointT)));
   }
