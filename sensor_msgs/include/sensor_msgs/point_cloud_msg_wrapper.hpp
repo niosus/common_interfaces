@@ -288,7 +288,7 @@ public:
   {
     if (index >= size()) {
       throw std::out_of_range(
-          "Index is out of bounds, " +
+              "Index is out of bounds, " +
               std::to_string(index) + " >= " + std::to_string(size()));
     }
     return reinterpret_cast<PointT &>(*(m_cloud_ref.data.data() + index * sizeof(PointT)));
